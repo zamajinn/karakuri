@@ -9,9 +9,12 @@ from pathlib import Path
 from build123d import (
     BuildLine,
     BuildSketch,
+    Circle,
     Line,
+    PolarLocations,
     Spline,
     ThreePointArc,
+    add,
     export_stl,
     extrude,
     make_face,
@@ -19,9 +22,13 @@ from build123d import (
 
 
 def _involute_xy(rb: float, t: float) -> tuple[float, float]:
+    # Involute of the base circle, parameterized so that increasing t
+    # spirals clockwise (polar angle decreases from the +x axis).
+    # Used as the +y-side (upper) flank of a tooth whose centerline
+    # lies on +x; the -y-side flank is its mirror across the x axis.
     return (
         rb * (math.cos(t) + t * math.sin(t)),
-        rb * (math.sin(t) - t * math.cos(t)),
+        rb * (t * math.cos(t) - math.sin(t)),
     )
 
 
@@ -77,8 +84,10 @@ def make_spur_gear(
 
     inv_alpha = math.tan(alpha) - alpha
     # Rotate the involute so that the upper-flank pitch point sits at +pi/(2z)
-    # relative to the tooth centerline.
-    flank_rot = math.pi / (2 * z) - inv_alpha
+    # relative to the tooth centerline. With the CW-spiral _involute_xy,
+    # the pitch point's unrotated polar angle is -inv(alpha), so we add
+    # inv(alpha) to land it at +pi/(2z) after rotation.
+    flank_rot = math.pi / (2 * z) + inv_alpha
 
     r_inv_start = max(rb, rf)
     t_start = (
@@ -97,50 +106,35 @@ def make_spur_gear(
 
     needs_root_extension = rf < rb
     if needs_root_extension:
-        upper_root_ext = (rf * math.cos(flank_rot), rf * math.sin(flank_rot))
-        lower_root_ext = (upper_root_ext[0], -upper_root_ext[1])
+        upper_root_pt = (rf * math.cos(flank_rot), rf * math.sin(flank_rot))
+    else:
+        upper_root_pt = upper[0]
+    lower_root_pt = (upper_root_pt[0], -upper_root_pt[1])
 
-    tooth_pitch = 2 * math.pi / z
-
-    with BuildSketch() as sk:
+    # Single tooth: a closed region bounded by both flanks, the tip arc,
+    # and a short arc along the root circle. The tooth centerline lies on +x.
+    # Wire is traced so the tooth interior sits on its left (CCW for OCCT).
+    with BuildSketch() as tooth_sk:
         with BuildLine():
-            for k in range(z):
-                tooth_ang = k * tooth_pitch
-                lf = [_rotate(p, tooth_ang) for p in lower]
-                uf = [_rotate(p, tooth_ang) for p in upper]
-
-                if needs_root_extension:
-                    lf_ext = _rotate(lower_root_ext, tooth_ang)
-                    uf_ext = _rotate(upper_root_ext, tooth_ang)
-                    Line(lf_ext, lf[0])
-                    Spline(*lf)
-                else:
-                    Spline(*lf)
-
-                tip_mid = (
-                    ra * math.cos(tooth_ang),
-                    ra * math.sin(tooth_ang),
-                )
-                ThreePointArc(lf[-1], tip_mid, uf[-1])
-                Spline(*list(reversed(uf)))
-
-                if needs_root_extension:
-                    Line(uf[0], uf_ext)
-                    start_root = uf_ext
-                else:
-                    start_root = uf[0]
-
-                next_tooth_ang = (k + 1) * tooth_pitch
-                if needs_root_extension:
-                    end_root = _rotate(lower_root_ext, next_tooth_ang)
-                else:
-                    end_root = _rotate(lower[0], next_tooth_ang)
-                mid_ang = tooth_ang + tooth_pitch / 2
-                root_mid = (rf * math.cos(mid_ang), rf * math.sin(mid_ang))
-                ThreePointArc(start_root, root_mid, end_root)
+            if needs_root_extension:
+                Line(upper_root_pt, upper[0])
+                Spline(*upper)
+            else:
+                Spline(*upper)
+            ThreePointArc(upper[-1], (ra, 0.0), lower[-1])
+            Spline(*list(reversed(lower)))
+            if needs_root_extension:
+                Line(lower[0], lower_root_pt)
+            ThreePointArc(lower_root_pt, (rf, 0.0), upper_root_pt)
         make_face()
 
-    return extrude(sk.sketch, amount=thickness)
+    # Base disk + z copies of the tooth arranged around the axis.
+    with BuildSketch() as gear_sk:
+        Circle(rf)
+        with PolarLocations(0, z):
+            add(tooth_sk.sketch)
+
+    return extrude(gear_sk.sketch, amount=thickness)
 
 
 def main() -> None:
