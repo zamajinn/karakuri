@@ -14,6 +14,7 @@ from build123d import (
     PolarLocations,
     Spline,
     ThreePointArc,
+    Part,
     add,
     export_stl,
     extrude,
@@ -44,7 +45,7 @@ def make_spur_gear(
     tooth_height_factor: float = 2.25,
     thickness: float = 10.0,
     flank_segments: int = 24,
-):
+) -> Part:
     """Build a spur gear with an involute tooth profile.
 
     Args:
