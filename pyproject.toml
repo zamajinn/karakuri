@@ -13,7 +13,7 @@ authors = [
     {name = "zamajinn" }
     ]
 dependencies = [
-    "build123d++0.10.0",
+    "build123d>=0.10.0",
     ]
 [tool.hatch.build.targets.wheel]
 packages = ["src/karakuri"]
