@@ -1,5 +1,7 @@
 # karakuri
 
+![CI](https://github.com/eng-kei-going/karakuri/actions/workflows/ci.yml/badge.svg)
+
 Python library for generating involute gear 3D models with build123d.
 
 build123d をベースに、インボリュート歯車の3Dモデルを生成する Python ライブラリです。
