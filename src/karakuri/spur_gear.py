@@ -11,10 +11,10 @@ from build123d import (
     BuildSketch,
     Circle,
     Line,
+    Part,
     PolarLocations,
     Spline,
     ThreePointArc,
-    Part,
     add,
     export_stl,
     extrude,
@@ -91,9 +91,7 @@ def make_spur_gear(
     flank_rot = math.pi / (2 * z) + inv_alpha
 
     r_inv_start = max(rb, rf)
-    t_start = (
-        math.sqrt((r_inv_start / rb) ** 2 - 1) if r_inv_start > rb else 0.0
-    )
+    t_start = math.sqrt((r_inv_start / rb) ** 2 - 1) if r_inv_start > rb else 0.0
     t_tip = math.sqrt((ra / rb) ** 2 - 1)
 
     upper = [
@@ -142,18 +140,27 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate an involute spur gear STL with build123d."
     )
-    parser.add_argument("--teeth", "-z", type=int, required=True,
-                        help="number of teeth")
-    parser.add_argument("--module", "-m", type=float, required=True,
-                        help="module in mm")
-    parser.add_argument("--pressure-angle", type=float, default=20.0,
-                        help="pressure angle in degrees (default 20)")
-    parser.add_argument("--tooth-height-factor", type=float, default=2.25,
-                        help="total tooth-height coefficient (default 2.25)")
-    parser.add_argument("--thickness", type=float, default=10.0,
-                        help="gear face width in mm (default 10)")
-    parser.add_argument("--output", "-o", type=str, default=None,
-                        help="output STL path (default: ../output/spur_gear_z*_m*.stl)")
+    parser.add_argument("--teeth", "-z", type=int, required=True, help="number of teeth")
+    parser.add_argument("--module", "-m", type=float, required=True, help="module in mm")
+    parser.add_argument(
+        "--pressure-angle", type=float, default=20.0, help="pressure angle in degrees (default 20)"
+    )
+    parser.add_argument(
+        "--tooth-height-factor",
+        type=float,
+        default=2.25,
+        help="total tooth-height coefficient (default 2.25)",
+    )
+    parser.add_argument(
+        "--thickness", type=float, default=10.0, help="gear face width in mm (default 10)"
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default=None,
+        help="output STL path (default: ../output/spur_gear_z*_m*.stl)",
+    )
     args = parser.parse_args()
 
     gear = make_spur_gear(

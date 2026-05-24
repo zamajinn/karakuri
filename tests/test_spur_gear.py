@@ -1,20 +1,22 @@
-from karakuri import make_spur_gear
 import pytest
+
+from karakuri import make_spur_gear
+
 
 def test_return_part():
     """
     スパーギアの生成機能をテストする。
-    
+
     このテストは、make_spur_gear関数が正常に機能しているか確認する。
     具体的には以下の3点を検証している：
     1. 関数が実際にギアオブジェクトを返すこと（Noneでないこと）
     2. 生成されたギアの体積が正の値であること（有効な3D形状であることの確認）
-    
+
     テストパラメータ：
         - teeth: 20 (歯数)
         - module: 2.0 (モジュール - 歯のサイズを決定)
         - thickness: 10.0 (ギアの厚さ)
-    
+
     Returns:
         None: このテストのアサーション結果がテストフレームワークに返される
     """
@@ -22,20 +24,22 @@ def test_return_part():
     assert gear is not None
     assert gear.volume > 0
 
+
 def test_volume_in_expected_range():
     """
     スパーギアの体積が想定範囲内であることをテストする。
-    
+
     このテストは、歯数20、モジュール2.0、厚さ8.0のスパーギアの体積が
     ベース円とギアの外形円の間の範囲内にあることを確認する。
-    
+
     体積はmm³で測定され、9000 < volume < 110000 の範囲内であることを検証。
-    
+
     Raises:
         AssertionError: 体積が期待範囲（9000 < volume < 110000）内にない場合
     """
     gear = make_spur_gear(teeth=20, module=2.0, thickness=8.0)
     assert 9000 < gear.volume < 110000
+
 
 def test_too_few_teeth_raises():
     """
@@ -48,6 +52,7 @@ def test_too_few_teeth_raises():
 
     with pytest.raises(ValueError):
         make_spur_gear(teeth=2, module=2)
+
 
 def test_zero_module_raises():
     """
@@ -66,6 +71,7 @@ def test_zero_module_raises():
 
     with pytest.raises(ValueError):
         make_spur_gear(teeth=20, module=0)
+
 
 def test_zero_thickness_raises():
     """
