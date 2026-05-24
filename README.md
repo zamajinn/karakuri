@@ -1,6 +1,6 @@
 # karakuri
 
-![CI](https://github.com/eng-kei-going/karakuri/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/zamajinn/karakuri/actions/workflows/ci.yml/badge.svg)](https://github.com/zamajinn/karakuri/actions/workflows/ci.yml)
 
 Python library for generating involute gear 3D models with build123d.
 
