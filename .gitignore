@@ -219,3 +219,6 @@ __marimo__/
 
 # stl files output directory
 output/
+
+# claude
+CLAUDE.local.md
